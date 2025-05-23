@@ -1,34 +1,31 @@
 package com.nergamed.backend.model;
 
-import com.nergamed.backend.repository.MovieRepository;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Document(collection="screenings")
 @Data
-@AllArgsConstructor
+@Document(collection = "screenings")
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Screening {
-
     @Id
     private String id;
-
-    private String screeningId;
-
-    @DBRef
-    private Hall hall;
-
-    private String startTime;
-    private String endTime;
-    private double basePrice;
+    private String movieId;
+    private String hallId;
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
+    private double baseTicketPrice;
     private List<String> occupiedSeats;
 }

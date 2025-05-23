@@ -1,37 +1,58 @@
 package com.nergamed.backend.controller;
 
+import com.nergamed.backend.dto.UpdateOccupiedSeatsRequest;
 import com.nergamed.backend.model.Screening;
 import com.nergamed.backend.service.ScreeningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
-@RequestMapping("api/screenings")
+@RequestMapping("/api/screenings")
 public class ScreeningController {
-    private final ScreeningService screeningService;
 
     @Autowired
-    public ScreeningController(ScreeningService screeningService) {
-        this.screeningService = screeningService;
+    private ScreeningService service;
+
+    @PostMapping
+    public ResponseEntity<Screening> createScreening(@RequestBody Screening screening) {
+        return ResponseEntity.status(201).body(service.createScreening(screening));
     }
 
+    // Parametr movieId jest opcjonalny
     @GetMapping
-    public ResponseEntity<List<Screening>> getAllScreenings() {
-        return ResponseEntity.ok(screeningService.allScreenings());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Screening> getScreeningById(@PathVariable String id) {
-        try{
-            return ResponseEntity.ok(screeningService.getScreeningById(id));
-        }catch (RuntimeException e){
-            return ResponseEntity.notFound().build();
+    public List<Screening> getScreenings(@RequestParam(required = false) String movieId) {
+        if (movieId != null && !movieId.isEmpty()) {
+            return service.getScreeningsByMovieId(movieId);
+        } else {
+            return service.getAllScreenings();
         }
     }
- }
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Screening> getById(@PathVariable String id) {
+        return service.getScreeningById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/occupied-seats")
+    public ResponseEntity<List<String>> getOccupiedSeats(@PathVariable String id) {
+        return service.getOccupiedSeats(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}/occupied-seats")
+    public ResponseEntity<Screening> addOccupiedSeats(
+            @PathVariable String id,
+            @RequestBody UpdateOccupiedSeatsRequest request) {
+        return service.addOccupiedSeats(id, request.getSeats())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
+}

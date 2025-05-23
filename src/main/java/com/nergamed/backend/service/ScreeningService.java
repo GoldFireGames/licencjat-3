@@ -4,21 +4,49 @@ import com.nergamed.backend.model.Screening;
 import com.nergamed.backend.repository.ScreeningRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 
-import java.util.List;
-
+import java.util.*;
 @Service
 public class ScreeningService {
+
     @Autowired
-    private ScreeningRepository screeningRepository;
+    private ScreeningRepository repository;
 
-    public List<Screening> allScreenings(){
-        return screeningRepository.findAll();
+    public Screening createScreening(Screening screening) {
+        return repository.save(screening);
     }
 
-    public Screening getScreeningById(@PathVariable String id) {
-        return screeningRepository.findById(id).get();
+    public List<Screening> getAllScreenings() {
+        return repository.findAll();
     }
 
+
+    // Zmieniamy na zwracanie List<Screening> bez Optional, bo łatwiej obsłużyć w kontrolerze
+    public List<Screening> getScreeningsByMovieId(String movieId) {
+        return repository.findByMovieId(movieId);
+    }
+
+    public Optional<Screening> getScreeningById(String id) {
+        return repository.findById(id);
+    }
+
+    public Optional<List<String>> getOccupiedSeats(String id) {
+        return repository.findById(id).map(Screening::getOccupiedSeats);
+    }
+
+    public Optional<Screening> addOccupiedSeats(String id, List<String> newSeats) {
+        return repository.findById(id).map(screening -> {
+            List<String> occupied = screening.getOccupiedSeats();
+            if (occupied == null) {
+                occupied = new ArrayList<>();
+            }
+            for (String seat : newSeats) {
+                if (!occupied.contains(seat)) {
+                    occupied.add(seat);
+                }
+            }
+            screening.setOccupiedSeats(occupied);
+            return repository.save(screening);
+        });
+    }
 }
